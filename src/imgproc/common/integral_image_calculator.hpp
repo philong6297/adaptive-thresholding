@@ -5,15 +5,13 @@
 #ifndef IMGPROC_COMMON_INTEGRAL_IMAGE_CALCULATOR_HPP_
 #define IMGPROC_COMMON_INTEGRAL_IMAGE_CALCULATOR_HPP_
 
-#include <array>
+#include <array>   // IntegralImages
 #include <concepts>
 #include <cstdint>
-#include <utility>
+#include <type_traits>
+#include <utility>   // std::invoke
 
-#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
-
-#include "base/type_traits.hpp"
 
 namespace longlp::imgproc {
   class IntegralImageCalculator {

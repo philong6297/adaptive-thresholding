@@ -79,7 +79,7 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
       const auto i1i4 = *integral_1st_order.ptr<double>(kernel_vertices.top,
                                                         kernel_vertices.right);
 
-      const auto N = kernel_.cols * kernel_.rows;
+      const auto N = kernel_.total();
 
       const auto s1   = i1i1 + i1i2 - i1i3 - i1i4;
       const auto mean = s1 * 1.0 / static_cast<double>(N);

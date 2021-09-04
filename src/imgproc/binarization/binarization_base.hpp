@@ -5,10 +5,13 @@
 #ifndef IMGPROC_BINARIZATION_BINARIZATION_BASE_HPP_
 #define IMGPROC_BINARIZATION_BINARIZATION_BASE_HPP_
 
-#include <memory>
-#include <nameof.hpp>
-#include <opencv2/core.hpp>
+#include <concepts>
+#include <memory>   // method_
 #include <type_traits>
+
+#include <fmt/format.h>   // getDefaultName
+#include <nameof.hpp>     // getDefaultName
+#include <opencv2/core.hpp>
 
 namespace longlp::imgproc {
 
@@ -44,8 +47,10 @@ namespace longlp::imgproc {
    public:
     // cv::Algorithm overrides
     [[nodiscard]] auto getDefaultName() const noexcept -> cv::String final {
-      return cv::String{nameof::nameof_short_type<BinarizationAlgorithm>()} +
-             cv::String{nameof::nameof_short_type<T>()};
+      return fmt::format(
+        "{base}.{impl}",
+        fmt::arg("base", nameof::nameof_short_type<BinarizationAlgorithm>()),
+        fmt::arg("impl", nameof::nameof_short_type<T>()));
     }
 
     void Binarize(const cv::Mat& input,

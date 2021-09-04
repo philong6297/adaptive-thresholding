@@ -5,9 +5,8 @@ target_include_directories(imgproc PRIVATE ${LONGLP_PROJECT_SRC_DIR})
 target_link_libraries(
   imgproc
   PUBLIC # third parties
-         opencv_core opencv_imgproc opencv_ximgproc OpenMP::OpenMP_CXX
+         opencv_core opencv_imgproc opencv_ximgproc OpenMP::OpenMP_CXX fmt::fmt
          # internal library
-         base
 )
 target_sources(
   imgproc
@@ -21,8 +20,4 @@ target_sources(
           binarization/binarization.hpp
           binarization/bernsen.cpp
           binarization/bernsen.hpp
-          # binarization/otsu.cpp binarization/otsu.hpp binarization/niblack.cpp
-          # binarization/niblack.hpp binarization/sauvola.cpp
-          # binarization/sauvola.hpp binarization/binarization_constraints.cpp
-          # binarization/binarization_constraints.hpp
 )
