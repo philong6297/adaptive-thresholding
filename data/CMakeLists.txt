@@ -1,0 +1,8 @@
+add_custom_target(
+  Data ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ./data ${CMAKE_BINARY_DIR}/data
+  VERBATIM
+  WORKING_DIRECTORY ${LONGLP_PROJECT_DIR}
+  USES_TERMINAL
+  COMMENT "copy ${LONGLP_PROJECT_DIR}/data to ${CMAKE_BINARY_DIR}/data"
+)

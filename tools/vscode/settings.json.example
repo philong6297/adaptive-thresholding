@@ -1,0 +1,35 @@
+{
+  "C_Cpp.autocomplete": "Disabled",
+  "C_Cpp.formatting": "Disabled",
+  "C_Cpp.intelliSenseEngine": "Disabled",
+  "clangd.arguments": [
+    "--clang-tidy",
+    "--background-index",
+    "--offset-encoding=utf-8",
+    "--header-insertion=never",
+    "--compile-commands-dir=${workspaceFolder}/build"
+  ],
+  "clangd.path": "C:/Users/longlp/scoop/shims/clangd.exe",
+  "clangd.restartAfterCrash": true,
+  "clangd.semanticHighlighting": true,
+  "cmake.configureOnEdit": false,
+  "cmake.configureOnOpen": false,
+  "cmake.configureSettings": {
+    "CMAKE_TOOLCHAIN_FILE": "C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  },
+  "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  "cmake.generator": "Ninja",
+  "cmake.preferredGenerators": [
+    "Ninja"
+  ],
+  "cmake.statusbar.visibility": "icon",
+  "cmakeFormat.exePath": "C:/tools/miniconda3/Scripts/cmake-format.exe",
+  "editor.formatOnSave": true,
+  "cmake.ctestPath": "C:/Program Files/CMake/bin/ctest.exe",
+  "files.associations": {
+    "Doxyfile.in": "doxygen",
+    "Doxyfile.template": "doxygen",
+    "*.json.example": "jsonc",
+    "snippets.code-snippets.example": "jsonc"
+  }
+}
