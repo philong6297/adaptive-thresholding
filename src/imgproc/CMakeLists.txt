@@ -20,4 +20,8 @@ target_sources(
           binarization/binarization.hpp
           binarization/bernsen.cpp
           binarization/bernsen.hpp
+          binarization/niblack.cpp
+          binarization/niblack.hpp
+          binarization/sauvola.cpp
+          binarization/sauvola.hpp
 )

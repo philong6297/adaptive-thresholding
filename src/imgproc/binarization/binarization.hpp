@@ -7,8 +7,8 @@
 
 #include "imgproc/binarization/bernsen.hpp"
 #include "imgproc/binarization/binarization_base.hpp"
-// #include "imgproc/binarization/niblack.hpp"
+#include "imgproc/binarization/niblack.hpp"
 // #include "imgproc/binarization/otsu.hpp"
-// #include "imgproc/binarization/sauvola.hpp"
+#include "imgproc/binarization/sauvola.hpp"
 
 #endif   // IMGPROC_BINARIZATION_BINARIZATION_HPP_

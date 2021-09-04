@@ -31,22 +31,9 @@ auto main() -> int32_t {
                cv::ImreadModes::IMREAD_GRAYSCALE);
   show("input", input);
 
-  // test<improc::Bernsen>(
-  //   input,
-  //   {
-  //     25,   // contrast limit
-  //     cv::getStructuringElement(cv::MorphShapes::MORPH_ELLIPSE,
-  //                               cv::Size(75, 75)),   // kernel
-  //     100,                                           // global threshold
-  //     cv::ThresholdTypes::THRESH_BINARY              // threshold type
-  //   });
   test<imgproc::Bernsen>(input);
-
-  // test<improc::OtsuOpenCV>(
-  //   input,
-  //   {
-  //     cv::ThresholdTypes::THRESH_BINARY   // threshold type
-  //   });
+  test<imgproc::NiBlack>(input);
+  test<imgproc::Sauvola>(input);
 
   // cv::Mat guided_image;
   // // guided image as average image
@@ -58,44 +45,11 @@ auto main() -> int32_t {
   // );
   // test<improc::Otsu2D>(input,
   //                      {
-  //                        guided_image,                        // guided image
-  //                        cv::ThresholdTypes::THRESH_BINARY,   // threshold
-  //                        type false,   // edge is foreground true,    //
-  //                        noise is background
+  //                        guided_image,                        // guided
+  //                        image cv::ThresholdTypes::THRESH_BINARY,   //
+  //                        threshold type false,   // edge is foreground
+  //                        true,    // noise is background
   //                      });
-
-  // test<improc::NiBlackOpenCV>(
-  //   input,
-  //   {
-  //     75,                                 // block size
-  //     -0.2,                               // k
-  //     cv::ThresholdTypes::THRESH_BINARY   // threshold type
-  //   });
-  // test<improc::NiBlackIntegralImage>(
-  //   input,
-  //   {
-  //     75,                                 // rectangle kernel width
-  //     75,                                 // rectangle kernel height
-  //     -0.2,                               // k
-  //     cv::ThresholdTypes::THRESH_BINARY   // threshold type
-  //   });
-  // test<improc::SauvolaOpenCV>(
-  //   input,
-  //   {
-  //     75,                                 // block size
-  //     0.2,                                // k
-  //     128,                                // r
-  //     cv::ThresholdTypes::THRESH_BINARY   // threshold type
-  //   });
-  // test<improc::SauvolaIntegralImage>(
-  //   input,
-  //   {
-  //     75,                                 // rectangle kernel width
-  //     75,                                 // rectangle kernel height
-  //     0.2,                                // k
-  //     128,                                // r
-  //     cv::ThresholdTypes::THRESH_BINARY   // threshold type
-  //   });
 
   cv::waitKeyEx(0);
   return 0;
