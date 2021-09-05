@@ -34,6 +34,7 @@ auto main() -> int32_t {
   test<imgproc::Bernsen>(input);
   test<imgproc::NiBlack>(input);
   test<imgproc::Sauvola>(input);
+  test<imgproc::Otsu2D>(input);
 
   // cv::Mat guided_image;
   // // guided image as average image

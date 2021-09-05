@@ -24,4 +24,6 @@ target_sources(
           binarization/niblack.hpp
           binarization/sauvola.cpp
           binarization/sauvola.hpp
+          binarization/otsu.cpp
+          binarization/otsu.hpp
 )
