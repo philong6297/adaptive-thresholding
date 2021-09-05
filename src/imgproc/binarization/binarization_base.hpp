@@ -21,24 +21,17 @@ namespace longlp::imgproc {
     requires std::semiregular<T>;
 
     // function requirements
-    requires requires(const T& t) {
+    requires requires(const T& t,
+                      const cv::Mat& input,
+                      cv::Mat& output,
+                      const bool use_background_white_color) {
       {
-        t.BinarizeImpl(std::declval<const cv::Mat&>(),   // input
-                       std::declval<cv::Mat&>(),         // output
-                       std::declval<bool>()   // use_background_white_color
-        )
+        t.BinarizeImpl(input, output, use_background_white_color)
         } -> std::same_as<void>;
 
-      {
-        t.AdditionalInputConstraints(std::declval<const cv::Mat&>()   // input
-        )
-        } -> std::same_as<void>;
+      { t.AdditionalInputConstraints(input) } -> std::same_as<void>;
 
-      {
-        t.AdditionalOutputConstraints(std::declval<const cv::Mat&>(),   // input
-                                      std::declval<const cv::Mat&>()   // output
-        )
-        } -> std::same_as<void>;
+      { t.AdditionalOutputConstraints(input, output) } -> std::same_as<void>;
     };
   };
 

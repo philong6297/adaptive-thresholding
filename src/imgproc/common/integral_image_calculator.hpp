@@ -8,8 +8,9 @@
 #include <array>   // IntegralImages
 #include <concepts>
 #include <cstdint>
+#include <functional>   // std::invoke
 #include <type_traits>
-#include <utility>   // std::invoke
+#include <utility>   // std::as_const
 
 #include <opencv2/imgproc.hpp>
 
@@ -32,14 +33,19 @@ namespace longlp::imgproc {
       requires std::is_same_v<PixelType, uint8_t> ||
         std::is_same_v<PixelType, double> || std::is_same_v<PixelType, float>;
 
-      requires
-        std::is_invocable_r_v<void,
-                              Processor,
-                              PixelType&,                     // pixel
-                              const int*,                     // position
-                              const IntegralImages<Order>&,   // integral_images
-                              const KernelVertices&           // kernel_vertices
-                              >;
+      requires requires(Processor && processor,
+                        PixelType & pixel,
+                        const int* position,
+                        const IntegralImages<Order>& integral_images,
+                        const KernelVertices& kernel_vertices) {
+        {
+          std::invoke(processor,
+                      pixel,
+                      position,
+                      integral_images,
+                      kernel_vertices)
+          } -> std::same_as<void>;
+      };
     }
     static void ConstructIntegralAndIterate(cv::Mat& input_output,
                                             const cv::Size& kernel_size,
@@ -55,11 +61,10 @@ namespace longlp::imgproc {
 
       const cv::Mat& padded_input =
         MakePaddedInputForIntegral(input_output,
-                                   delta_y,   // top
-                                   delta_y,   // bottom
-                                   delta_x,   // left
-                                   delta_x    // right
-        );
+                                   delta_y /* top */,
+                                   delta_y /* bottom */,
+                                   delta_x /* left */,
+                                   delta_x /* right */);
 
       const auto integral_images = MakeIntegralImage<Order>(padded_input);
 
@@ -104,10 +109,8 @@ namespace longlp::imgproc {
     // Calculate integral image 1st
     cv::Mat integral_1st_order;
     cv::integral(padded_input,
-                 integral_1st_order,   // sum
-                 CV_64F                // force to store double in sum
-
-    );
+                 integral_1st_order /* sum */,
+                 CV_64F /* force to store double in sum */);
     return {integral_1st_order};
   }
 
@@ -119,11 +122,10 @@ namespace longlp::imgproc {
     cv::Mat integral_1st_order;
     cv::Mat integral_2nd_order;
     cv::integral(padded_input,
-                 integral_1st_order,   // sum
-                 integral_2nd_order,   // square sum
-                 CV_64F,               // force to store double in sum
-                 CV_64F                // force to store double in square sum
-    );
+                 integral_1st_order /* sum */,
+                 integral_2nd_order /* square sum */,
+                 CV_64F /* force to store double in sum */,
+                 CV_64F /* force to store double in square sum */);
     return {integral_1st_order, integral_2nd_order};
   }
 }   // namespace longlp::imgproc

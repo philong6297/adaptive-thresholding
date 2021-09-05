@@ -31,26 +31,26 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
   // Image contains max values based on neighbor pixels, which are constructed
   // by kernel
   cv::Mat min_filter;
-  cv::erode(output,
-            min_filter,
-            kernel_,
-            cv::Point{-1, -1},                   // anchor, at element center
-            1,                                   // iterations
-            cv::BorderTypes::BORDER_CONSTANT,    // border type
-            cv::morphologyDefaultBorderValue()   // border constant value
-  );
+  cv::erode(
+    output,
+    min_filter,
+    kernel_,
+    /* anchor, at kernel center */ cv::Point{-1, -1},
+    /* iterations */ 1,
+    /* border type */ cv::BorderTypes::BORDER_CONSTANT,
+    /* use default constant value */ cv::morphologyDefaultBorderValue());
 
   // Image contains min values based on neighbor pixels, which are constructed
   // by kernel
   cv::Mat max_filter;
-  cv::dilate(output,
-             max_filter,
-             kernel_,
-             cv::Point{-1, -1},                   // anchor, at element center
-             1,                                   // iterations
-             cv::BorderTypes::BORDER_CONSTANT,    // border type
-             cv::morphologyDefaultBorderValue()   // border constant value
-  );
+  cv::dilate(
+    output,
+    max_filter,
+    kernel_,
+    /* anchor, at kernel center */ cv::Point{-1, -1},
+    /* iterations */ 1,
+    /* border type */ cv::BorderTypes::BORDER_CONSTANT,
+    /* use default constant value */ cv::morphologyDefaultBorderValue());
 
   IntegralImageCalculator::ConstructIntegralAndIterate<double, 1>(
     output,
