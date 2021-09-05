@@ -5,7 +5,8 @@
 #ifndef IMGPROC_BINARIZATION_NIBLACK_HPP_
 #define IMGPROC_BINARIZATION_NIBLACK_HPP_
 
-#include <opencv2/imgproc.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/core/softfloat.hpp>
 
 namespace longlp::imgproc {
   class NiBlack final {
@@ -21,7 +22,7 @@ namespace longlp::imgproc {
 
    private:
     cv::Size kernel_size_{75, 75};
-    double k_{-0.2};
+    cv::softdouble k_{-0.2};
   };
 
 }   // namespace longlp::imgproc

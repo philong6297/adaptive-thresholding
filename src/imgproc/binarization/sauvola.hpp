@@ -5,7 +5,8 @@
 #ifndef IMGPROC_BINARIZATION_SAUVOLA_HPP_
 #define IMGPROC_BINARIZATION_SAUVOLA_HPP_
 
-#include <opencv2/imgproc.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/core/softfloat.hpp>
 
 namespace longlp::imgproc {
   class Sauvola final {
@@ -21,8 +22,8 @@ namespace longlp::imgproc {
 
    private:
     cv::Size kernel_size_{75, 75};
-    double k_{0.2};
-    double r_{128.0};
+    cv::softdouble k_{0.2};
+    cv::softdouble r_{128.0};
   };
 
 }   // namespace longlp::imgproc

@@ -55,7 +55,11 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
   IntegralImageCalculator::ConstructIntegralAndIterate<double, 1>(
     output,
     kernel_.size(),
-    [this, &binary_colors, &min_filter, &max_filter](
+    [this,
+     &binary_colors,
+     &min_filter,
+     &max_filter,
+     N = cv::softdouble{kernel_.total()}](
       double& pixel,
       const int* position,
       const IntegralImages& integral_images,
@@ -65,32 +69,33 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
       const auto y = position[0];
       const auto x = position[1];
 
-      const auto min = *min_filter.ptr<double>(y, x);
-      const auto max = *max_filter.ptr<double>(y, x);
+      const cv::softdouble min{*min_filter.ptr<double>(y, x)};
+      const cv::softdouble max{*max_filter.ptr<double>(y, x)};
 
       const auto local_contrast = max - min;
 
-      const auto i1i1 = *integral_1st_order.ptr<double>(kernel_vertices.bottom,
-                                                        kernel_vertices.right);
-      const auto i1i2 = *integral_1st_order.ptr<double>(kernel_vertices.top,
-                                                        kernel_vertices.left);
-      const auto i1i3 = *integral_1st_order.ptr<double>(kernel_vertices.bottom,
-                                                        kernel_vertices.left);
-      const auto i1i4 = *integral_1st_order.ptr<double>(kernel_vertices.top,
-                                                        kernel_vertices.right);
+      const cv::softdouble i1i1{
+        *integral_1st_order.ptr<double>(kernel_vertices.bottom,
+                                        kernel_vertices.right)};
+      const cv::softdouble i1i2{
+        *integral_1st_order.ptr<double>(kernel_vertices.top,
+                                        kernel_vertices.left)};
+      const cv::softdouble i1i3{
+        *integral_1st_order.ptr<double>(kernel_vertices.bottom,
+                                        kernel_vertices.left)};
+      const cv::softdouble i1i4{
+        *integral_1st_order.ptr<double>(kernel_vertices.top,
+                                        kernel_vertices.right)};
 
-      const auto N = kernel_.total();
-
-      const auto s1   = i1i1 + i1i2 - i1i3 - i1i4;
-      const auto mean = s1 * 1.0 / static_cast<double>(N);
+      const auto mean = (i1i1 + i1i2 - i1i3 - i1i4) / N;
 
       if (local_contrast < contrast_limit_) {
-        pixel = (mean < global_threshold_) ? binary_colors.object
-                                           : binary_colors.background;
+        pixel = mean < global_threshold_ ? binary_colors.object
+                                         : binary_colors.background;
       }
       else {
-        pixel =
-          (pixel < mean) ? binary_colors.object : binary_colors.background;
+        pixel = cv::softdouble{pixel} < mean ? binary_colors.object
+                                             : binary_colors.background;
       }
     });
 
