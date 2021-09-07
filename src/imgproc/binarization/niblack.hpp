@@ -14,11 +14,6 @@ namespace longlp::imgproc {
     auto BinarizeImpl(const cv::Mat& input,
                       cv::Mat& output,
                       bool use_background_white_color) const -> void;
-    auto AdditionalInputConstraints(
-      [[maybe_unused]] const cv::Mat& input) const noexcept {}
-    auto AdditionalOutputConstraints(
-      [[maybe_unused]] const cv::Mat& input,
-      [[maybe_unused]] const cv::Mat& output) const noexcept {}
 
    private:
     cv::Size kernel_size_{75, 75};

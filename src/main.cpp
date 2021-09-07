@@ -16,12 +16,12 @@ namespace {
     cv::imshow(name.data(), img);
   }
 
-  template <longlp::imgproc::BinarizationInterface T>
+  template <longlp::imgproc::BinarizationMethodInterface T>
   inline auto test(const cv::Mat& input) {
     imgproc::BinarizationAlgorithm<T> algo{};
     cv::Mat output;
     algo.Binarize(input, output, true);
-    show(algo.getDefaultName().data(), output);
+    show(algo.name(), output);
   }
 }   // namespace
 

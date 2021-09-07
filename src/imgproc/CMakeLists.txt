@@ -16,6 +16,10 @@ target_sources(
           common/constant.hpp
           common/integral_image_calculator.cpp
           common/integral_image_calculator.hpp
+          binarization/binarization_validator.cpp
+          binarization/binarization_validator.hpp
+          binarization/binarization_algorithm.cpp
+          binarization/binarization_algorithm.hpp
           binarization/binarization.cpp
           binarization/binarization.hpp
           binarization/bernsen.cpp

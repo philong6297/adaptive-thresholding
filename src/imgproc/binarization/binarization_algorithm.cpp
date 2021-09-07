@@ -2,4 +2,4 @@
 // Use of this source code is governed by a MIT license that can be
 // found in the LICENSE file.
 
-#include "imgproc/binarization/binarization_base.hpp"
+#include "imgproc/binarization/binarization_algorithm.hpp"
