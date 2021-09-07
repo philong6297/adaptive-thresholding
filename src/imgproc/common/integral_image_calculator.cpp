@@ -6,6 +6,8 @@
 
 namespace {
   using longlp::imgproc::IntegralImageCalculator;
+
+  using ErrorCode = cv::Error::Code;
 }   // namespace
 
 // static
@@ -18,8 +20,10 @@ auto IntegralImageCalculator::MakePaddedInputForIntegral(
   const int left_padding_size,
   const int right_padding_size) noexcept -> cv::Mat {
   // pre-conditions
-  CV_Assert((top_padding_size >= 0 && bottom_padding_size >= 0 &&
-             left_padding_size >= 0 && right_padding_size >= 0));
+  if (top_padding_size < 0 || bottom_padding_size < 0 ||
+      left_padding_size < 0 || right_padding_size < 0) {
+    CV_Error(ErrorCode::StsBadArg, "padding size must be positive integer");
+  }
 
   // Create padding with kernel
   cv::Mat padded_input = input.clone();
@@ -34,9 +38,13 @@ auto IntegralImageCalculator::MakePaddedInputForIntegral(
   );
 
   // post-conditions
-  CV_Assert(padded_input.type() == input.type() &&
-            padded_input.size() ==
-              cv::Size(input.cols + left_padding_size + right_padding_size,
-                       input.rows + top_padding_size + bottom_padding_size));
+  if (padded_input.type() != input.type() || padded_input.dims != input.dims ||
+      padded_input.size() !=
+        cv::Size(input.cols + left_padding_size + right_padding_size,
+                 input.rows + top_padding_size + bottom_padding_size)) {
+    CV_Error(ErrorCode::StsInternal,
+             "padded image neither have same type and dims as input image nor "
+             "size is not Size(src.cols+left+right, src.rows+top+bottom)");
+  }
   return padded_input;
 }

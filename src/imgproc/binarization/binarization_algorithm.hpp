@@ -47,7 +47,11 @@ namespace longlp::imgproc {
                   const Params& params) const {
       // pre-conditions
       // NOLINTNEXTLINE(hicpp-signed-bitwise)
-      CV_Assert(input.type() == CV_8UC1 && input.dims == 2);
+      if (input.type() != CV_8UC1 || input.dims != 2) {
+        CV_Error(
+          cv::Error::Code::StsBadArg,
+          "input is not binary image (8-bit, single channel, 2 dimension)");
+      }
       BinarizationValidator<MethodType>::ValidateInput(*method_, input);
 
       BinarizationValidator<MethodType>::ValidateParams(*method_,
@@ -60,8 +64,12 @@ namespace longlp::imgproc {
                               params);
 
       // post-conditions
-      CV_Assert(output.type() == input.type() && output.dims == input.dims &&
-                input.size() == output.size());
+      if (output.type() != input.type() || output.dims != input.dims ||
+          input.size() != output.size()) {
+        CV_Error(
+          cv::Error::Code::StsInternal,
+          "output image does not have the same type, size or dims as input");
+      }
       BinarizationValidator<MethodType>::ValidateOutput(*method_,
                                                         input,
                                                         output);

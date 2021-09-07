@@ -8,7 +8,6 @@
 #include <array>   // IntegralImages
 #include <concepts>
 #include <cstdint>
-#include <functional>   // std::invoke
 #include <type_traits>
 #include <utility>   // std::as_const
 
@@ -39,11 +38,7 @@ namespace longlp::imgproc {
                         const IntegralImages<Order>& integral_images,
                         const KernelVertices& kernel_vertices) {
         {
-          std::invoke(processor,
-                      pixel,
-                      position,
-                      integral_images,
-                      kernel_vertices)
+          processor(pixel, position, integral_images, kernel_vertices)
           } -> std::same_as<void>;
       };
     }
@@ -51,10 +46,16 @@ namespace longlp::imgproc {
                                             const cv::Size& kernel_size,
                                             Processor&& processor) noexcept {
       // pre-conditions
-      CV_Assert(kernel_size.width > 0 && kernel_size.height > 0);
-      CV_Assert(input_output.dims == 2 && (input_output.type() == CV_8U ||
-                                           input_output.type() == CV_32F ||
-                                           input_output.type() == CV_64F));
+      if (kernel_size.empty()) {
+        CV_Error(cv::Error::Code::StsBadArg, "kernel size is empty");
+      }
+      if (!(input_output.dims == 2 &&
+            (input_output.type() == CV_8U || input_output.type() == CV_32F ||
+             input_output.type() == CV_64F))) {
+        CV_Error(cv::Error::Code::StsBadArg,
+                 "input_output must be 2D image, 8-bit or floating point "
+                 "(32-bit, 64-bit)");
+      }
 
       const auto delta_x = (kernel_size.width - 1) / 2;
       const auto delta_y = (kernel_size.height - 1) / 2;
