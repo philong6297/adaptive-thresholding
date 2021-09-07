@@ -4,6 +4,8 @@
 
 #include "imgproc/binarization/bernsen.hpp"
 
+#include <opencv2/core/softfloat.hpp>
+
 #include "imgproc/common/constant.hpp"
 #include "imgproc/common/integral_image_calculator.hpp"
 
@@ -14,13 +16,33 @@ namespace {
   using KernelVertices = IntegralImageCalculator::KernelVertices;
   using IntegralImages = IntegralImageCalculator::IntegralImages<1>;
 
+  using ErrorCode = cv::Error::Code;
+  using cv::softdouble;
+
 }   // namespace
 
+auto Bernsen::ValidateParams(const Params& params) const -> void {
+  if (const softdouble ct{params.contrast_limit};
+      !(ct >= softdouble::zero() && ct <= softdouble{255.0})) {
+    CV_Error(ErrorCode::StsBadArg, "contrast limit is not in range [0-255]");
+  }
+
+  if (const softdouble gt{params.global_threshold};
+      !(gt >= softdouble::zero() && gt <= softdouble{255.0})) {
+    CV_Error(ErrorCode::StsBadArg, "contrast limit is not in range [0-255]");
+  }
+
+  if (params.kernel.empty() || params.kernel.dims != 2) {
+    CV_Error(ErrorCode::StsBadArg,
+             "kernel either is empty or has invalid dims (!= 2)");
+  }
+}
+
 // https://www.academia.edu/30363617/Implementation_of_Bernsen_s_Locally_Adaptive_Binarization_Method_for_Gray_Scale_Images
-auto Bernsen::BinarizeImpl(const cv::Mat& input,
-                           cv::Mat& output,
-                           const bool use_background_white_color) const
-  -> void {
+auto Bernsen::BinarizeUnsafe(const cv::Mat& input,
+                             cv::Mat& output,
+                             const bool use_background_white_color,
+                             const Params& params) const -> void {
   output = input.clone();
   output.convertTo(output, CV_64F);
 
@@ -34,7 +56,7 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
   cv::erode(
     output,
     min_filter,
-    kernel_,
+    params.kernel,
     /* anchor, at kernel center */ cv::Point{-1, -1},
     /* iterations */ 1,
     /* border type */ cv::BorderTypes::BORDER_CONSTANT,
@@ -46,7 +68,7 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
   cv::dilate(
     output,
     max_filter,
-    kernel_,
+    params.kernel,
     /* anchor, at kernel center */ cv::Point{-1, -1},
     /* iterations */ 1,
     /* border type */ cv::BorderTypes::BORDER_CONSTANT,
@@ -54,12 +76,13 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
 
   IntegralImageCalculator::ConstructIntegralAndIterate<double, 1>(
     output,
-    kernel_.size(),
-    [this,
-     &binary_colors,
+    params.kernel.size(),
+    [&binary_colors,
      &min_filter,
      &max_filter,
-     N = cv::softdouble{kernel_.total()}](
+     N  = softdouble{params.kernel.total()},
+     gt = softdouble{params.global_threshold},
+     ct = softdouble{params.contrast_limit}](
       double& pixel,
       const int* position,
       const IntegralImages& integral_images,
@@ -69,33 +92,32 @@ auto Bernsen::BinarizeImpl(const cv::Mat& input,
       const auto y = position[0];
       const auto x = position[1];
 
-      const cv::softdouble min{*min_filter.ptr<double>(y, x)};
-      const cv::softdouble max{*max_filter.ptr<double>(y, x)};
+      const softdouble min{*min_filter.ptr<double>(y, x)};
+      const softdouble max{*max_filter.ptr<double>(y, x)};
 
       const auto local_contrast = max - min;
 
-      const cv::softdouble i1i1{
+      const softdouble i1i1{
         *integral_1st_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.right)};
-      const cv::softdouble i1i2{
+      const softdouble i1i2{
         *integral_1st_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.left)};
-      const cv::softdouble i1i3{
+      const softdouble i1i3{
         *integral_1st_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.left)};
-      const cv::softdouble i1i4{
+      const softdouble i1i4{
         *integral_1st_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.right)};
 
       const auto mean = (i1i1 + i1i2 - i1i3 - i1i4) / N;
 
-      if (local_contrast < contrast_limit_) {
-        pixel = mean < global_threshold_ ? binary_colors.object
-                                         : binary_colors.background;
+      if (local_contrast < ct) {
+        pixel = mean < gt ? binary_colors.object : binary_colors.background;
       }
       else {
-        pixel = cv::softdouble{pixel} < mean ? binary_colors.object
-                                             : binary_colors.background;
+        pixel = softdouble{pixel} < mean ? binary_colors.object
+                                         : binary_colors.background;
       }
     });
 

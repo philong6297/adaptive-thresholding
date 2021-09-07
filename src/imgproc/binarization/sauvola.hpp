@@ -6,19 +6,25 @@
 #define IMGPROC_BINARIZATION_SAUVOLA_HPP_
 
 #include <opencv2/core.hpp>
-#include <opencv2/core/softfloat.hpp>
 
 namespace longlp::imgproc {
   class Sauvola final {
    public:
-    auto BinarizeImpl(const cv::Mat& input,
-                      cv::Mat& output,
-                      bool use_background_white_color) const -> void;
+    struct Params {
+      // size area must be > 0
+      cv::Size kernel_size{};
 
-   private:
-    cv::Size kernel_size_{75, 75};
-    cv::softdouble k_{0.2};
-    cv::softdouble r_{128.0};
+      double k{};
+
+      // must be in range [0.0 - 255.0]
+      double r{};
+    };
+    auto BinarizeUnsafe(const cv::Mat& input,
+                        cv::Mat& output,
+                        bool use_background_white_color,
+                        const Params& params) const -> void;
+
+    auto InvalidateParams(const Params& params) const -> void;
   };
 
 }   // namespace longlp::imgproc

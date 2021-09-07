@@ -11,16 +11,20 @@ namespace longlp::imgproc {
 
   class Otsu2D final {
    public:
-    auto BinarizeImpl(const cv::Mat& input,
-                      cv::Mat& output,
-                      bool use_background_white_color) const -> void;
+    struct Params {
+      cv::Size kernel_size{};
+      bool edge_role_as_background{};    // treat detected edge as either
+                                         // background or foreground
+      bool noise_role_as_background{};   // treat detected noise as either
+                                         // background or foreground
+    };
 
-   private:
-    cv::Size kernel_size_{75, 75};
-    bool edge_role_as_background_{false};   // treat detected edge as either
-                                            // background or foreground
-    bool noise_role_as_background_{true};   // treat detected noise as either
-                                            // background or foreground
+    auto BinarizeUnsafe(const cv::Mat& input,
+                        cv::Mat& output,
+                        bool use_background_white_color,
+                        const Params& params) const -> void;
+
+    auto InvalidateParams(const Params& params) const -> void;
   };
 }   // namespace longlp::imgproc
 

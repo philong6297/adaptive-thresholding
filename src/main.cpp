@@ -17,10 +17,12 @@ namespace {
   }
 
   template <longlp::imgproc::BinarizationMethodInterface T>
-  inline auto test(const cv::Mat& input) {
+  inline auto test(
+    const cv::Mat& input,
+    const typename imgproc::BinarizationAlgorithm<T>::Params& params) {
     imgproc::BinarizationAlgorithm<T> algo{};
     cv::Mat output;
-    algo.Binarize(input, output, true);
+    algo.Binarize(input, output, true, params);
     show(algo.name(), output);
   }
 }   // namespace
@@ -31,26 +33,26 @@ auto main() -> int32_t {
                cv::ImreadModes::IMREAD_GRAYSCALE);
   show("input", input);
 
-  test<imgproc::Bernsen>(input);
-  test<imgproc::NiBlack>(input);
-  test<imgproc::Sauvola>(input);
-  test<imgproc::Otsu2D>(input);
+  test<imgproc::Bernsen>(
+    input,
+    {25.0 /* constrast limit */,
+     100.0 /* global threshold */,
+     cv::getStructuringElement(cv::MorphShapes::MORPH_ELLIPSE,
+                               cv::Size(75, 75))} /* kernel */);
 
-  // cv::Mat guided_image;
-  // // guided image as average image
-  // cv::blur(input,
-  //          guided_image,
-  //          cv::Size(75, 75),    // kernel size
-  //          cv::Point(-1, -1),   // anchor at kernel center
-  //          cv::BORDER_REFLECT   // symmetric padding
-  // );
-  // test<improc::Otsu2D>(input,
-  //                      {
-  //                        guided_image,                        // guided
-  //                        image cv::ThresholdTypes::THRESH_BINARY,   //
-  //                        threshold type false,   // edge is foreground
-  //                        true,    // noise is background
-  //                      });
+  test<imgproc::NiBlack>(input,
+                         {cv::Size{75, 75} /* kernel size */, -0.2 /* k */});
+
+  test<imgproc::Sauvola>(
+    input,
+    {cv::Size{75, 75} /* kernel size */, 0.2 /* k */, 128.0 /* r */});
+
+  test<imgproc::Otsu2D>(input,
+                        {
+                          cv::Size{75, 75} /* kernel size */,
+                          false /* edge is foreground */,
+                          true /* noise is background */
+                        });
 
   cv::waitKeyEx(0);
   return 0;

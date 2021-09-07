@@ -19,16 +19,19 @@ namespace longlp::imgproc {
 
   template <class T>
   concept BinarizationMethodInterface = requires {
-    requires std::is_class_v<T>;
-    requires std::semiregular<T>;
+    requires std::is_class_v<T> && std::semiregular<T>;
+
+    requires std::is_class_v<typename T::Params> &&
+      std::semiregular<typename T::Params>;
 
     // function requirements
     requires requires(const T& t,
                       const cv::Mat& input,
                       cv::Mat& output,
-                      const bool use_background_white_color) {
+                      const bool use_background_white_color,
+                      const typename T::Params& params) {
       {
-        t.BinarizeImpl(input, output, use_background_white_color)
+        t.BinarizeUnsafe(input, output, use_background_white_color, params)
         } -> std::same_as<void>;
     };
   };
@@ -36,15 +39,23 @@ namespace longlp::imgproc {
   template <BinarizationMethodInterface MethodType>
   class BinarizationAlgorithm {
    public:
+    using Params = typename MethodType::Params;
+
     void Binarize(const cv::Mat& input,
                   cv::Mat& output,
-                  const bool use_background_white_color) const {
+                  const bool use_background_white_color,
+                  const Params& params) const {
       // pre-conditions
       // NOLINTNEXTLINE(hicpp-signed-bitwise)
       CV_Assert(input.type() == CV_8UC1 && input.dims == 2);
       BinarizationValidator<MethodType>::ValidateInput(*method_, input);
 
-      method_->BinarizeImpl(input, output, use_background_white_color);
+      BinarizationValidator<MethodType>::ValidateParams(*method_, params);
+
+      method_->BinarizeUnsafe(input,
+                              output,
+                              use_background_white_color,
+                              params);
 
       // post-conditions
       CV_Assert(output.type() == input.type() && output.dims == input.dims &&

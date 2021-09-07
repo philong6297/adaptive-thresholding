@@ -11,19 +11,29 @@
 
 namespace {
   using longlp::imgproc::Otsu2D;
+
+  using cv::softdouble;
+  using ErrorCode = cv::Error::Code;
 }   // namespace
 
+auto Otsu2D::InvalidateParams(const Params& params) const -> void {
+  if (params.kernel_size.empty()) {
+    CV_Error(ErrorCode::StsBadArg, "kernel size is empty");
+  }
+}
+
 // https://sci-hub.se/10.1109/CCPR.2009.5344078
-void Otsu2D::BinarizeImpl(const cv::Mat& input,
-                          cv::Mat& output,
-                          const bool use_background_white_color) const {
+void Otsu2D::BinarizeUnsafe(const cv::Mat& input,
+                            cv::Mat& output,
+                            const bool use_background_white_color,
+                            const Params& params) const {
   output = input.clone();
   output.convertTo(output, CV_64F);
 
   cv::Mat average_image;
   cv::blur(input,
            average_image,
-           kernel_size_,
+           params.kernel_size,
            cv::Point(-1, -1) /* anchor at kernel center */,
            cv::BORDER_REFLECT /* symmetric padding */);
 
@@ -78,34 +88,31 @@ void Otsu2D::BinarizeImpl(const cv::Mat& input,
     cv::integral(temp, Y, CV_64F /* Force to store double in P */);
   }
 
-  auto threshold_s  = cv::softdouble::zero();
-  auto threshold_t  = cv::softdouble::zero();
-  auto max_retrance = cv::softdouble::zero();
+  auto threshold_s  = softdouble::zero();
+  auto threshold_t  = softdouble::zero();
+  auto max_retrance = softdouble::zero();
 
   for (auto s = 0; s < f.rows; ++s) {
     for (auto t = 0; t < f.cols; ++t) {
       const auto y = s + 1;
       const auto x = t + 1;
 
-      const cv::softdouble X0{*X.ptr<double>(y, x)};
-      const cv::softdouble Y0{*Y.ptr<double>(y, x)};
+      const softdouble X0{*X.ptr<double>(y, x)};
+      const softdouble Y0{*Y.ptr<double>(y, x)};
 
-      const cv::softdouble X1{*X.ptr<double>(256, 256) -
-                              *X.ptr<double>(256, x) - *X.ptr<double>(y, 256) +
-                              X0};
-      const cv::softdouble Y1{*Y.ptr<double>(256, 256) -
-                              *Y.ptr<double>(256, x) - *Y.ptr<double>(y, 256) +
-                              Y0};
+      const softdouble X1{*X.ptr<double>(256, 256) - *X.ptr<double>(256, x) -
+                          *X.ptr<double>(y, 256) + X0};
+      const softdouble Y1{*Y.ptr<double>(256, 256) - *Y.ptr<double>(256, x) -
+                          *Y.ptr<double>(y, 256) + Y0};
 
-      const cv::softdouble w0{*P.ptr<double>(y, x)};
-      if (!(w0 > cv::softdouble::eps())) {
+      const softdouble w0{*P.ptr<double>(y, x)};
+      if (!(w0 > softdouble::eps())) {
         continue;
       }
 
-      const cv::softdouble w1{*P.ptr<double>(256, 256) -
-                              *P.ptr<double>(256, x) - *P.ptr<double>(y, 256) +
-                              *P.ptr<double>(y, x)};
-      if (!(w1 > cv::softdouble::eps())) {
+      const softdouble w1{*P.ptr<double>(256, 256) - *P.ptr<double>(256, x) -
+                          *P.ptr<double>(y, 256) + *P.ptr<double>(y, x)};
+      if (!(w1 > softdouble::eps())) {
         break;
       }
 
@@ -117,8 +124,8 @@ void Otsu2D::BinarizeImpl(const cv::Mat& input,
             w0 * (ut - u0) * (ut - u0) + w1 * (ut - u1) * (ut - u1);
           local_retrance > max_retrance) {
         max_retrance = local_retrance;
-        threshold_s  = cv::softdouble{s};
-        threshold_t  = cv::softdouble{t};
+        threshold_s  = softdouble{s};
+        threshold_t  = softdouble{t};
       }
     }
   }
@@ -142,16 +149,17 @@ void Otsu2D::BinarizeImpl(const cv::Mat& input,
 
   const auto threshold =
     // object: A, background: edge(B) + C + noise(D) ~ threshold = max(s,t)
-    edge_role_as_background_ && noise_role_as_background_
+    params.edge_role_as_background && params.noise_role_as_background
       ? cv::max(threshold_s, threshold_t)
       // object: A + noise(D), background: edge(B) + C ~ threshold = s
-      : (edge_role_as_background_
+      : (params.edge_role_as_background
            ? threshold_s
            // object: A + edge(B), background: C + noise(D) ~ threshold = t
-           : (noise_role_as_background_ ? threshold_t
-                                        // object: A + edge(B) + noise(D),
-                                        // background: C ~ threshold = min(s, t)
-                                        : cv::min(threshold_s, threshold_t)));
+           : (params.noise_role_as_background
+                ? threshold_t
+                // object: A + edge(B) + noise(D),
+                // background: C ~ threshold = min(s, t)
+                : cv::min(threshold_s, threshold_t)));
 
   cv::threshold(output,
                 output,

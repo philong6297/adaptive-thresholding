@@ -4,6 +4,8 @@
 
 #include "imgproc/binarization/niblack.hpp"
 
+#include <opencv2/core/softfloat.hpp>
+
 #include "imgproc/common/constant.hpp"
 #include "imgproc/common/integral_image_calculator.hpp"
 
@@ -12,12 +14,22 @@ namespace {
   using longlp::imgproc::NiBlack;
   using KernelVertices = IntegralImageCalculator::KernelVertices;
   using IntegralImages = IntegralImageCalculator::IntegralImages<2>;
+
+  using cv::softdouble;
+  using ErrorCode = cv::Error::Code;
 }   // namespace
 
+auto NiBlack::InvalidateParams(const Params& params) const -> void {
+  if (params.kernel_size.empty()) {
+    CV_Error(ErrorCode::StsBadArg, "kernel size is empty");
+  }
+}
+
 // https://sci-hub.se/10.1134/S1054661816030020
-void NiBlack::BinarizeImpl(const cv::Mat& input,
-                           cv::Mat& output,
-                           bool use_background_white_color) const {
+void NiBlack::BinarizeUnsafe(const cv::Mat& input,
+                             cv::Mat& output,
+                             bool use_background_white_color,
+                             const Params& params) const {
   output = input.clone();
   output.convertTo(output, CV_64F);
 
@@ -27,49 +39,50 @@ void NiBlack::BinarizeImpl(const cv::Mat& input,
 
   IntegralImageCalculator::ConstructIntegralAndIterate<double, 2>(
     output,
-    kernel_size_,
-    [this, &binary_colors, N = cv::softdouble{kernel_size_.area()}](
-      double& pixel,
-      [[maybe_unused]] const int* position,
-      const IntegralImages& integral_images,
-      const KernelVertices& kernel_vertices) {
+    params.kernel_size,
+    [&binary_colors,
+     N = softdouble{params.kernel_size.area()},
+     k = softdouble{params.k}](double& pixel,
+                               [[maybe_unused]] const int* position,
+                               const IntegralImages& integral_images,
+                               const KernelVertices& kernel_vertices) {
       const auto& [integral_1st_order, integral_2nd_order] = integral_images;
 
-      const cv::softdouble i1i1{
+      const softdouble i1i1{
         *integral_1st_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.right)};
-      const cv::softdouble i1i2{
+      const softdouble i1i2{
         *integral_1st_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.left)};
-      const cv::softdouble i1i3{
+      const softdouble i1i3{
         *integral_1st_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.left)};
-      const cv::softdouble i1i4{
+      const softdouble i1i4{
         *integral_1st_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.right)};
 
       const auto local_mean = (i1i1 + i1i2 - i1i3 - i1i4) / N;
 
-      const cv::softdouble i2i1{
+      const softdouble i2i1{
         *integral_2nd_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.right)};
-      const cv::softdouble i2i2{
+      const softdouble i2i2{
         *integral_2nd_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.left)};
-      const cv::softdouble i2i3{
+      const softdouble i2i3{
         *integral_2nd_order.ptr<double>(kernel_vertices.bottom,
                                         kernel_vertices.left)};
-      const cv::softdouble i2i4{
+      const softdouble i2i4{
         *integral_2nd_order.ptr<double>(kernel_vertices.top,
                                         kernel_vertices.right)};
 
       const auto local_stddev =
         cv::sqrt((i2i1 + i2i2 - i2i3 - i2i4) / N - local_mean * local_mean);
 
-      const auto thresh_hold = local_mean + k_ * local_stddev;
+      const auto thresh_hold = local_mean + k * local_stddev;
 
-      pixel = cv::softdouble{pixel} > thresh_hold ? binary_colors.background
-                                                  : binary_colors.object;
+      pixel = softdouble{pixel} > thresh_hold ? binary_colors.background
+                                              : binary_colors.object;
     });
 
   output.convertTo(output, CV_8U);

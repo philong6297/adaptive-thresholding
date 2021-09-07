@@ -13,7 +13,8 @@
 namespace longlp::imgproc {
 
   template <class T>
-  requires std::is_class_v<T> && std::semiregular<T>
+  requires std::is_class_v<T> && std::semiregular<T> &&
+    std::semiregular<typename T::Params>
   struct BinarizationValidator {
     static auto ValidateInput(const T& t, const cv::Mat& input) -> void {
       static constexpr auto has_input_validator = requires {
@@ -34,6 +35,16 @@ namespace longlp::imgproc {
 
       if constexpr (has_output_validator) {
         t.ValidateOutput(input, output);
+      }
+    }
+
+    static auto ValidateParams(const T& t, const typename T::Params& params) {
+      static constexpr auto has_params_validator = requires {
+        { t.ValidateParams(params) } -> std::same_as<void>;
+      };
+
+      if constexpr (has_params_validator) {
+        t.ValidateParams(params);
       }
     }
   };
