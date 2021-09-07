@@ -38,13 +38,15 @@ namespace longlp::imgproc {
       }
     }
 
-    static auto ValidateParams(const T& t, const typename T::Params& params) {
+    static auto ValidateParams(const T& t,
+                               const cv::Mat& input,
+                               const typename T::Params& params) {
       static constexpr auto has_params_validator = requires {
-        { t.ValidateParams(params) } -> std::same_as<void>;
+        { t.ValidateParams(input, params) } -> std::same_as<void>;
       };
 
       if constexpr (has_params_validator) {
-        t.ValidateParams(params);
+        t.ValidateParams(input, params);
       }
     }
   };

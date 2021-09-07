@@ -21,7 +21,8 @@ namespace {
 
 }   // namespace
 
-auto Bernsen::ValidateParams(const Params& params) const -> void {
+auto Bernsen::ValidateParams([[maybe_unused]] const cv::Mat& input,
+                             const Params& params) const -> void {
   if (const softdouble ct{params.contrast_limit};
       !(ct >= softdouble::zero() && ct <= softdouble{255.0})) {
     CV_Error(ErrorCode::StsBadArg, "contrast limit is not in range [0-255]");

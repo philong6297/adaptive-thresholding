@@ -27,7 +27,8 @@ namespace longlp::imgproc {
                         bool use_background_white_color,
                         const Params& params) const -> void;
 
-    auto ValidateParams(const Params& params) const -> void;
+    auto ValidateParams(const cv::Mat& input, const Params& params) const
+      -> void;
   };
 }   // namespace longlp::imgproc
 

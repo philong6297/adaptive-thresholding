@@ -16,9 +16,17 @@ namespace {
   using ErrorCode = cv::Error::Code;
 }   // namespace
 
-auto Otsu2D::InvalidateParams(const Params& params) const -> void {
+auto Otsu2D::InvalidateParams(const cv::Mat& input, const Params& params) const
+  -> void {
   if (params.kernel_size.empty()) {
     CV_Error(ErrorCode::StsBadArg, "kernel size is empty");
+  }
+
+  if (params.guided_image.empty() ||
+      params.guided_image.type() != input.type() ||
+      params.guided_image.size() != input.size()) {
+    CV_Error(ErrorCode::StsBadArg,
+             "guided image does not have the same size and type as input");
   }
 }
 
@@ -30,16 +38,9 @@ void Otsu2D::BinarizeUnsafe(const cv::Mat& input,
   output = input.clone();
   output.convertTo(output, CV_64F);
 
-  cv::Mat average_image;
-  cv::blur(input,
-           average_image,
-           params.kernel_size,
-           cv::Point(-1, -1) /* anchor at kernel center */,
-           cv::BORDER_REFLECT /* symmetric padding */);
-
   cv::Mat merged;
   {
-    const std::vector<cv::Mat> merge_list({input, average_image});
+    const std::vector<cv::Mat> merge_list({input, params.guided_image});
     cv::merge(merge_list, merged);
   }
 

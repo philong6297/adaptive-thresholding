@@ -50,7 +50,9 @@ namespace longlp::imgproc {
       CV_Assert(input.type() == CV_8UC1 && input.dims == 2);
       BinarizationValidator<MethodType>::ValidateInput(*method_, input);
 
-      BinarizationValidator<MethodType>::ValidateParams(*method_, params);
+      BinarizationValidator<MethodType>::ValidateParams(*method_,
+                                                        input,
+                                                        params);
 
       method_->BinarizeUnsafe(input,
                               output,

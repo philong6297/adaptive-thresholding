@@ -19,7 +19,8 @@ namespace {
   using ErrorCode = cv::Error::Code;
 }   // namespace
 
-auto Sauvola::InvalidateParams(const Params& params) const -> void {
+auto Sauvola::InvalidateParams([[maybe_unused]] const cv::Mat& input,
+                               const Params& params) const -> void {
   if (params.kernel_size.empty()) {
     CV_Error(ErrorCode::StsBadArg, "kernel size is empty");
   }

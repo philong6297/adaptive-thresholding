@@ -47,12 +47,18 @@ auto main() -> int32_t {
     input,
     {cv::Size{75, 75} /* kernel size */, 0.2 /* k */, 128.0 /* r */});
 
+  cv::Mat average_image;
+  cv::Size kernel_size{75, 75};
+  cv::blur(input,
+           average_image,
+           kernel_size,
+           cv::Point(-1, -1) /* anchor at kernel center */,
+           cv::BORDER_REFLECT /* symmetric padding */);
   test<imgproc::Otsu2D>(input,
-                        {
-                          cv::Size{75, 75} /* kernel size */,
-                          false /* edge is foreground */,
-                          true /* noise is background */
-                        });
+                        {kernel_size,
+                         false /* edge is foreground */,
+                         true /* noise is background */,
+                         average_image});
 
   cv::waitKeyEx(0);
   return 0;
